@@ -1,0 +1,140 @@
+[background-color="#01303a"]
+== Dependency Management with Gradle 6
+
+=== Dependency and version declarations
+
+[%step]
+* Dependency constraints, platforms
+* Rich versions
+* `compile` and `runtime` deprecated
+
+=== Platforms to share versions
+
+.platform/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+   `java-platform`
+}
+
+dependencies {
+    constraints {
+       api("org.slf4j:slf4j-api:1.7.26")
+       runtime("org.slf4j:slf4j-simple:1.7.26")
+    }
+}
+----
+
+.cli/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+   api(platform(project(":platform")))
+
+   implementation("org.slf4j:slf4j-api") // <-- no version here
+}
+----
+
+=== Rich dependency versions
+
+* Works also with dependency constraints
+
+[source,groovy]
+----
+dependencies {
+   implementation("info.picocli:picocli") {
+       version {
+          requires("[3.9, 4.0[")
+          prefer("3.9.5")
+       }
+       because("Provides command-line argument parsing")
+   }
+}
+----
+
+=== The famous logging problem
+
+[%step]
+* Slf4j and bridging / replacement modules
+* `log4j` vs. `slf4j-log4j12` vs. `log4j-over-slf4j`
+* And similarly for `java.util.logging`
+* And again for `commons-logging`
+* And of course, do not forget `log4j` 2!
+
+=== Relocated libraries
+
+[%step]
+* `asm:asm` now known as `org.ow2.asm:asm`
+* `junit:junit-dep` and `junit:junit`
+* `cglib:cglib-nodep` and `cglib:cglib`
+
+=== Handling mutually exclusive modules
+
+* A _capability_ describes a feature that is mutually exclusive
+* All components provide their GAV as a capability by default
+
+=== Capabilities example
+
+```
+dependencies {
+    components {
+        // both slf4j-simple and slf4j-log4j12 implement the slf4j api
+        withModule("org.slf4j:slf4j-simple", Slf4jImplCapability::class.java)
+        withModule("org.slf4j:slf4j-log4j12", Slf4jImplCapability::class.java)
+    }
+}
+class Slf4jImplCapability : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) = context.run {
+        details.allVariants {
+            withCapabilities {
+                addCapability("my.project", "slf4j-impl", "1.0")
+            }
+        }
+    }
+}
+```
+
+=== Misaligned dependencies
+
+* A group of dependencies are designed to work together.
+** Think `jackson` or even the Spring framework
+* Through transitive dependency updates, modules end up having different versions
+
+So the goal would be to have the tools to make sure that _any_ upgrade of _any_ module would cause the whole set to upgrade its version(s).
+
+=== Solving the issue in Gradle
+
+[%step]
+* By enhancing module metadata
+[%step]
+** Using _virtual_ platform
+*** Gradle _attempts_ alignment
+** Using _published_ BOM
+*** Gradle will respect the versions from the BOM
+
+=== Enhancing metadata example
+```
+open class JacksonAlignmentRule : ComponentMetadataRule {
+    override fun execute(ctx: ComponentMetadataContext) {
+        ctx.details.run {
+            if (id.group.startsWith("com.fasterxml.jackson")) {
+                belongsTo("my.jackson:jackson-platform:${id.version}")
+            }
+        }
+    }
+}
+```
+
+=== All new in 6??
+
+Well, not really 🤭
+[%step]
+* Dependency constraints -> 4.5
+* Platforms -> 5.0
+* Java platform plugin -> 5.2
+* Rich versions -> 4.4
+** `strictly` semantics -> 6.0 🙌
+* Capabilities -> 4.7
+* Alignment -> 4.10
+* ...
+

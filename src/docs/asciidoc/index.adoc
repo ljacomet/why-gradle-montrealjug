@@ -1,0 +1,58 @@
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../../../demos]
+:navigation:
+:menu:
+:status:
+:title-slide-background-image: title.png
+:title-slide-transition: zoom
+:title-slide-transition-speed: fast
+:icons: font
+
+= : Why Gradle?
+
++++<h3>+++
++++<div style="font-size: .75em; padding-top:30px">+++
+Louis Jacomet - Gradle Inc.
++++</div>+++
++++</h3>+++
+
+== Who am I?
+
+image::blog_head_round.png[height=250,width=250]
+
+icon:github[] ljacomet +++&nbsp;+++ icon:twitter[] @ljacomet
+
+* Lead software engineer @ Gradle
+** Part of the JVM ecosystem team
+* Previously worked for Terracotta on Ehcache
+* Started my career as a contractor
+
+include::chapters/02_productivity.adoc[]
+
+include::chapters/04_model_system.adoc[]
+
+include::chapters/05_incremental.adoc[]
+
+include::chapters/06_cache.adoc[]
+
+include::chapters/08_dependency_management.adoc[]
+
+include::chapters/09_metadata_revolution.adoc[]
+
+[background-color="#01303a"]
+== Conclusion
+
+=== Long live rich metadata!
+
+[%step]
+* Gradle 6.0 offers a _comprehensive_ and _richer_ solution for dependency management
+* Use it internally if you can!
+* Request it from known libraries that would benefit from it!
+* Escape "Dependency Hell"
+
+[%notitle]
+== Thank you
+
+image::thank-you.png[background, size=cover]

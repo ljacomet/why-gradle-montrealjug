@@ -1,0 +1,7 @@
+[background-color="#01303a"]
+== Gradle's mission
+
+=== Developer productivity
+
+[%step]
+* *Fast* feedback cycles

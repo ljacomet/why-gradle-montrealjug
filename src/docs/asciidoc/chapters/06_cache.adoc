@@ -1,0 +1,57 @@
+[background-color="#01303a"]
+== Build cache
+
+=== How does it work?
+
+With up-to-date checks, Gradle is:
+[%step]
+* Reusing results
+* Rrom *last time*
+* When we ran *this build*
+* On *this machine*
+
+=== Gradle can do better
+
+=== Why not...
+
+Have Gradle:
+[%step]
+* Reuse results
+* From *anytime before*
+* When we ran *any build*
+* On *this machine*
+
+=== Or even better ...
+
+Reuse results +
+from *anytime before*  +
+when we ran *any build* +
+ *anywhere*.
+
+=== Builds on top of incremental builds
+
+[%step]
+* Get reliable incremental builds first
+* Next work on making them cacheable
+* Cacheable tasks require additional information for path sensitivity
+
+=== Repeatable outputs
+
+[%step]
+* Same inputs must produce same outputs
+* May be byte-for-byte equivalent
+* May be semantically equivalent (with normalization)
+
+=== Normalization
+
+[%step]
+* `@InputFiles` - no normalization
+* `@CompileClasspath` - Extracts ABI from classes
+* `@Classpath` - treats files as a runtime Java classpath
+** Configurable runtime normalization to ignore some files
+
+=== Deploying a build cache
+
+* Stable for Java, Groovy and Scala projects
+* Gradle Enterprise provides a backend for managing, monitoring and replicating caches
+* Dockerhub: https://hub.docker.com/r/gradle/build-cache-node/[gradle/build-cache-node]

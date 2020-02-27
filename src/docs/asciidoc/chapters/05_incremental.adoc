@@ -1,0 +1,31 @@
+[background-color="#01303a"]
+== Incremental builds
+
+=== Why does it matter?
+
+* Gradle is meant for incremental builds
+* `clean` is a waste of time
+
+=== The _incrementality_ test
+
+[%step]
+* Run a build
+* Run again with no change
+* If a task was re-executed, time is wasted
+[%step]
+** Investigate!
+
+=== Tasks as functions
+
+* What are the task inputs?
+* What are the task outputs?
+* What if one of them changes?
+
+=== Know why your task is out-of-date
+
+image::task-out-of-date.png[height=415]
+
+=== Incremental task inputs
+
+* Know precisely _which_ files have changed
+* Task action can perform the minimal amount of work

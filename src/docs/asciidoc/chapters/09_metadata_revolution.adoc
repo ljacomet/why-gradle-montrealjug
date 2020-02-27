@@ -1,0 +1,113 @@
+[background-color="#01303a"]
+== Metadata revolution
+
+=== Erase differences between projects and binaries
+
+[%step]
+* Most of the features discussed previously _did not_ apply outside of project boundaries.
+* Neither the Maven POM or the Ivy XML are rich enough to model _all_ these concepts.
+* That's why, by default in 6.0, Gradle will generate its own metadata file.
+
+=== What is this format?
+
+[source,json]
+----
+include::../../misc/junit-jupiter-api-5.6.0-M1.module[]
+----
+
+=== Published platform dependency
+
+_junit-jupiter-api-5.6.0-M1.module_ (excerpt)
+```
+"variants": [
+  {
+    "name": "apiElements",
+    "attributes": { "org.gradle.category": "library", ... },
+    "dependencies": [
+      {
+        "group": "org.junit",
+        "module": "junit-bom",
+        "version": { "requires": "5.6.0" },
+        "attributes": { "org.gradle.category": "platform" },
+      }
+    ]
+  },
+```
+
+=== Published platform (BOM)
+
+_junit-bom-5.6.0-M1.module_ (excerpt)
+```
+"variants": [
+  {
+    "name": "apiElements",
+    "attributes": { "org.gradle.category": "platform", ... },
+    "dependencyConstraints": [
+      {
+        "group": "org.junit.jupiter",
+        "module": "junit-jupiter-engine",
+        "version": { "requires": "5.6.0" }
+      }
+    ]
+  },
+```
+
+_build.gradle.kts_ (consumer example)
+```kotlin
+dependencies {
+    implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    //                                  ↑↑↑ brings in 'junit-bom:5.6.0'
+    implementation("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+    //           ↑↑↑ thanks to 'junit-bom:5.6.0' it will align to 5.6.0
+}
+```
+
+=== The Guava use case
+
+[%step]
+* Guava comes in two flavors
+** a `jre` version, which effectively means Java 8+
+** an `android` version, which effectively means Java 6+
+* To work around issues of having _both_ on the classpath, the difference is encoded in the _version_ string
+** `guava-28.1-jre` and `guava-28.1-android`
+* However none of this guarantees the correct version is used
+** Maven's nearest first may pick an `android` version while the `jre` would be better
+** Gradle's global resolution could upgrade to the `jre` version while `android` must be used.
+* Can we do better?
+
+=== Metadata with custom variants
+
+_guava-28.1-jre.module_ (how could it look like?)
+```
+"variants": [
+  { "name": "jdk6ApiElements", "dependencies": [ ... ],
+    "attributes": { "org.gradle.jvm.version": 6, ... },
+    "files": [{ "url": "../28.1-android/guava-28.1-android.jar" }]
+  },
+  { "name": "jdk8ApiElements", "dependencies": [ ... ],
+    "attributes": { "org.gradle.jvm.version": 8, ... },
+    "files": [{ "url": "guava-28.1-jre.jar" }]
+  },
+  { "name": "jdk6RuntimeElements" ... },
+  { "name": "jdk8RuntimeElements" ... },
+```
+
+_build.gradle.kts_ (consumer example)
+```
+dependencies {
+    implementation("com.google.guava:guava:28.1-jre")
+}
+java {
+    // 6 or 7 gets 'android.jar', 8+ gets 'jre.jar', <6 fails
+    targetCompatibility = JavaVersion.VERSION_1_6
+}
+```
+
+=== Details, details, details
+
+[%step]
+* Gradle Module Metadata 1.0 was released with Gradle 5.3!
+* Gradle 6.0 uses format 1.1
+* Changes between these version are minor, mostly around variant attributes
+* Gradle 6.0 will automatically consume module metadata
+** Thanks to a marker in published POM/Ivy files
